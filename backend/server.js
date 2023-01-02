@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 
 //init variables
 const sequelize = require('./database/sequelize');
+const cors = require('cors');
 const { User, Event} = require('./database/models');
 const users = require('./routes/userRoutes.js');
 const events = require('./routes/eventRoutes.js');
