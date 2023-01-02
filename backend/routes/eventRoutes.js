@@ -1,4 +1,4 @@
-const {Event} = require("../database/models");
+const {Event, User} = require("../database/models");
 const express = require('express');
 const app = express();
 
@@ -15,16 +15,22 @@ app.get('/events/all', async (req, res) => {
 });
 
  // get events for a specific user
-  //get all events
-  app.get('/:id/events', async (req, res) => {
+ 
+app.get('/:id/events', async (req, res) => {
     try {
         const id = req.params.id;
-        const events = await Event.findAll({
-        where: {
-          userId: id
-        }
-      });
-      res.status(200).json(events);
+        const user = await User.findByPk(id);
+        if (user) {
+            const events = await user.getEvents({
+                where: {
+                    userId: id
+                }
+            });
+            res.status(200).json(events);
+        } else {
+            res.status(404).json({message: 'User not found!'});                  
+        }        
+        
     } catch (err) {
         console.warn(err);
         //middleware for treating error TO DO
@@ -36,22 +42,16 @@ app.get('/events/all', async (req, res) => {
 app.post('/:id/events/add', async (req, res) => {
     try {
         const id = req.params.id;
-        const {name, location, date, startHour} = req.body;
-        console.warn("name::"+name);
-        if (id !== null && id !== 'undefined') {
-            console.warn("idd"+id);
-            const ev = {
-                "name": name,
-                "location": location, 
-                "date": date, 
-                "startHour": startHour, 
-                "userId": id
-            };
-            await Event.create(ev);
+        const user = await User.findByPk(id);
+        if (user) {
+            const event = req.body;
+            event.userId = user.id;
+            await Event.create(event);
             // to do: validate data
-            res.status(200).json({message: 'The events was added successfully!'});
-        }
-        
+            res.status(201).json({message: 'The event was added successfully!'});
+        }  else {
+            res.status(404).json({message: 'User not found!'});                  
+        }        
     } catch (err) {
         console.warn(err);
         //middleware for treating error TO DO
@@ -64,16 +64,23 @@ app.delete('/:id/events/delete/:idEvent', async (req, res) => {
     try {
         const idUser = req.params.id;
         const idEvent = req.params.idEvent;
-        if (idUser !== null && idUser !== 'undefined') {
-            const event = await Event.findByPk(idEvent);
-            if(event){
-            await event.destroy();
-                res.status(200).json({ message: "The event was successfully deleted!" });
+        const user = await User.findByPk(idUser);        
+        if (user) {
+            const events = await user.getEvents({
+                where: {
+                    id: idEvent
+                }
+            });
+            const event = events.shift();
+            if (event){
+                await event.destroy();
+                res.status(201).json({ message: "The event was successfully deleted!" });
             } else {
-                res.status(404).json({ message: "User not found!" });
-            }                    
-        }
-        
+                res.status(404).json({ message: "Event not found!" });
+            }               
+        } else {
+            res.status(404).json({ message: "User not found!" });
+        }    
     } catch (err) {
         console.warn(err);
         res.status(500).json({message: 'An error occured'});
@@ -85,30 +92,24 @@ app.put("/:id/events/edit/:idEvent", async (req, res, next) => {
     try {
         const id = req.params.id;
         const idEvent = req.params.idEvent;
-        const event = await Event.findByPk(idEvent);
-        if(event){
-            if( req.body.name && req.body.location
-                && req.body.date && req.body.startHour)
-            {
-                const {name, location, date, startHour} = req.body;
-                const event = {
-                    "name": name,
-                    "location": location, 
-                    "date": date, 
-                    "startHour": startHour, 
-                    "userId": id
-                };
-                    await Event.update(event, {
-                        where: {
-                            id: idEvent
-                        }
-                    });
-                    res.status(201).json({ message: "The course was updated successfully!" });
+        const user = await User.findByPk(id);
+        if(user){
+            const events = await user.getEvents({
+                where: {
+                    id: idEvent
+                }
+            });
+            const event = events.shift();
+            if (event) {
+                const eventTemp = req.body;
+                eventTemp.idUser = user.id;
+                await event.update(eventTemp);
+                res.status(202).json({ message: "The events was updated successfully!" });
             } else {
-            res.status(400).json({ message: "Malformed request!" });
+                res.status(400).json({ message: "Event not found!" });
             }
         } else {
-            res.status(404).json({ message: "Event not found!" });
+            res.status(404).json({ message: "User not found!" });
         }
     } catch (err) {
       next(err);
