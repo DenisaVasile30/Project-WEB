@@ -2,44 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 //init variables
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: 'events.db',
-  define: {
-      timestamps: false
-  }
-});
-// define User
-const User = sequelize.define('user', {
-  userName: {
-      type: Sequelize.STRING,
-      allowNull: false
-  },
-  password: {
-      type: Sequelize.STRING,
-      allowNull: false
-  } 
-});
-const Event = sequelize.define('event', {
-  name: {
-      type: Sequelize.STRING,
-      allowNull: false
-  },
-  location: {
-      type: Sequelize.TEXT,
-      allowNull: false
-  },
-  date: {
-      type: Sequelize.DATE,
-      allowNull: false
-  },
-  startHour: {
-      type: Sequelize.STRING,
-      allowNull: false
-  }
-});
-
+const sequelize = require('./database/sequelize');
+const { User, Event} = require('./database/models');
 
 //init server app
 const app = express();
@@ -47,34 +11,40 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({extended:true}));
 
-
+//define relations
+User.hasMany(Event);
 
 app.get('/', async (req, res) => {
   res.send('Hello World')
-})
-
-// app.get('/login', async (req, res) => {
-//   try {
-//     const user = await User.findAll();
-//     res.status(200).json({message: 'the user exists'});
-//   } catch (err) {
-//       console.warn(err);
-//       //middleware for treating error TO DO
-//       res.status(500).json({message: 'An error occured'});
-//   }
-//   });
-
-  // trigger create tables
-app.get('/sync', async(req, res) => {
-    try {
-      await sequelize.sync({force: true});
-      res.status(200).json({message: 'Tables created'});
-    } catch (err) {
-        console.warn(err);
-        //middleware for treating error TO DO
-        res.status(500).json({message: 'An error occured'});
-    }
 });
+
+ // trigger create tables
+ app.get('/sync', async(req, res) => {
+  try {
+    await sequelize.sync({force: true});
+    res.status(200).json({message: 'Tables created'});
+  } catch (err) {
+      console.warn(err);
+      //middleware for treating error TO DO
+      res.status(500).json({message: 'An error occured'});
+  }
+});
+
+
+
+// just for testing
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.findAll();
+    res.status(200).json(users);
+  } catch (err) {
+      console.warn(err);
+      //middleware for treating error TO DO
+      res.status(500).json({message: 'An error occured'});
+  }
+  });
+
+ 
 
 
   // get login data and validate in oder to acces data
@@ -123,9 +93,27 @@ app.post('/create-account', async (req, res) => {
 });
 
 //get all events
-app.get('/events', async (req, res) => {
+app.get('/all-events', async (req, res) => {
   try {
     const events = await Event.findAll();
+    res.status(200).json(events);
+  } catch (err) {
+      console.warn(err);
+      //middleware for treating error TO DO
+      res.status(500).json({message: 'An error occured'});
+  }
+  });
+
+  // get events for a specific user
+  //get all events
+app.get('/events/show', async (req, res) => {
+  try {
+    const id = req.query.id;
+    const events = await Event.findAll({
+      where: {
+        userId: id
+      }
+    });
     res.status(200).json(events);
   } catch (err) {
       console.warn(err);
