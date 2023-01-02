@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 //init variables
+const client = 'http://localhost:3000';
+// const session = require("client-sessions");
 const sequelize = require('./database/sequelize');
 const cors = require('cors');
 const { User, Event} = require('./database/models');
@@ -11,6 +13,7 @@ const events = require('./routes/eventRoutes.js');
 const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
+app.use(cors());
 app.use(express.urlencoded({extended:true}));
 
 
@@ -20,10 +23,30 @@ app.use('/users',events);
 //define relations
 User.hasMany(Event);
 
-// app.get('/', async (req, res) => {
-//   res.send('Hello World')
+// for authorization: 
+// app.use(function (req, res, next) { // ading data in Headers ( view in Postman -> Headers )
+//   res.header("Access-Control-Allow-Origin", client);
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   res.header("Access-Control-Allow-Methods", "DELETE, PUT, GET, POST");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//   );
+//   next();
 // });
 
+// configuration for caches 
+// app.options("*", cors({ origin: client }));
+// app.get("/*", (req, res, next) => {
+//   res.header("Cache-Control", "no-cache, no-store");
+//   next();
+// });
+
+
+
+
+
+  
  // trigger create tables
  app.get('/sync', async(req, res) => {
   try {
