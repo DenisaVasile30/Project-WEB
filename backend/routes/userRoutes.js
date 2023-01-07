@@ -1,9 +1,9 @@
 const {User} = require("../database/models");
 const express = require('express');
-const app = express();
+const router = express.Router();
 
 // get users
-app.get('/all', async (req, res) => {
+router.get('/all', async (req, res) => {
   try {
     const users = await User.findAll();
     res.status(200).json(users);
@@ -16,4 +16,4 @@ app.get('/all', async (req, res) => {
 
 
 
-module.exports=app;
+module.exports = router;

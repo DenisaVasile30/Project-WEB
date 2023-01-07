@@ -1,27 +1,26 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
+const bodyParser = require('body-parser')
 
 //init variables
-const client = 'http://localhost:3000';
+const client = 'http://localhost:3000'
 // const session = require("client-sessions");
-const sequelize = require('./database/sequelize');
+const sequelize = require('./database/sequelize')
 const cors = require('cors');
-const { User, Event} = require('./database/models');
-const users = require('./routes/userRoutes.js');
-const events = require('./routes/eventRoutes.js');
+const { User, Event} = require('./database/models')
+const users = require('./routes/userRoutes.js')
+const events = require('./routes/eventRoutes.js')
 //init server app
-const app = express();
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(cors());
-app.use(express.urlencoded({extended:true}));
+const app = express()
+app.use(express.json())
+app.use(cors())
+app.use(express.urlencoded({extended:true}))
 
 
 // adding created routes
-app.use('/users',users);
-app.use('/users',events);
+app.use('/users',users)
+app.use('/users',events)
 //define relations
-User.hasMany(Event);
+User.hasMany(Event)
 
 // for authorization: 
 // app.use(function (req, res, next) { // ading data in Headers ( view in Postman -> Headers )
@@ -57,7 +56,7 @@ User.hasMany(Event);
       //middleware for treating error TO DO
       res.status(500).json({message: 'An error occured'});
   }
-});
+})
 
   // get login data and validate in oder to acces data
 app.post('/login', async (req, res) => {
@@ -65,11 +64,13 @@ app.post('/login', async (req, res) => {
     // const user = await User.findOne({ where: { userName: }});
     const userNameValue = req.body.userName;
     const passwordValue = req.body.password;
+    console.log(req.body.userName + passwordValue + '!!!!!');
     const user = await User.findOne({ where: {userName: userNameValue, password: passwordValue}});
     if ( user === null || user === 'undefined') {
-      res.status(200).json({message: 'The user does not exists in the database!'});
+      res.status(401).json({message: 'Invalid username or password! If you do not have an account you can create' 
+      + ' one with Sign Up option!'});
     } else {
-      res.status(200).json({message: 'Success login!'});
+      res.status(200).json(user);
     }
   } catch (err) {
       console.warn(err);
@@ -77,19 +78,29 @@ app.post('/login', async (req, res) => {
       //middleware for treating error TO DO
       res.status(500).json({message: 'An error occured'});
   }
-});
+})
   // get data in order to create account
 app.post('/create-account', async (req, res) => {
   try {
-    await User.create(req.body);
-    // to do: validate data
-    res.status(200).json({message: 'The user has been registered successfully!'});
+    const userNameValue = req.body.userName;
+    const passwordValue = req.body.password;
+    console.log("valuues::" + userNameValue + passwordValue);
+    const user = await User.findOne({ where: {userName: userNameValue, password: passwordValue}});
+    console.log("createAccount::" + user);
+    if (user != null) {
+      console.log('already exists');
+      res.status(401).json({message: 'This user already exists!'});
+    } else {
+      console.log('must create');
+      await User.create(req.body);
+      res.status(201).json({message: 'The user has been registered successfully!'});
+    }    
   } catch (err) {
       console.warn(err);
       //middleware for treating error TO DO
       res.status(500).json({message: 'An error occured'});
   }
-});
+})
 
 
-app.listen(8000);
+app.listen(8000)

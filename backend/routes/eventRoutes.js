@@ -1,9 +1,9 @@
 const {Event, User} = require("../database/models");
 const express = require('express');
-const app = express();
+const router = express.Router();
 
 //get all events
-app.get('/events/all', async (req, res) => {
+router.get('/events/all', async (req, res) => {
     try {
         const events = await Event.findAll();
         res.status(200).json(events);
@@ -16,7 +16,7 @@ app.get('/events/all', async (req, res) => {
 
  // get events for a specific user
  
-app.get('/:id/events', async (req, res) => {
+ router.get('/:id/events', async (req, res) => {
     try {
         const id = req.params.id;
         const user = await User.findByPk(id);
@@ -39,7 +39,7 @@ app.get('/:id/events', async (req, res) => {
 });
 
 // add event for specific user
-app.post('/:id/events/add', async (req, res) => {
+router.post('/:id/events/add', async (req, res) => {
     try {
         const id = req.params.id;
         const user = await User.findByPk(id);
@@ -60,7 +60,7 @@ app.post('/:id/events/add', async (req, res) => {
 });
 
 // delete event by id
-app.delete('/:id/events/delete/:idEvent', async (req, res) => {
+router.delete('/:id/events/delete/:idEvent', async (req, res) => {
     try {
         const idUser = req.params.id;
         const idEvent = req.params.idEvent;
@@ -88,7 +88,7 @@ app.delete('/:id/events/delete/:idEvent', async (req, res) => {
 });
 
 // update event by id
-app.put("/:id/events/edit/:idEvent", async (req, res, next) => {
+router.put("/:id/events/edit/:idEvent", async (req, res, next) => {
     try {
         const id = req.params.id;
         const idEvent = req.params.idEvent;
@@ -116,6 +116,4 @@ app.put("/:id/events/edit/:idEvent", async (req, res, next) => {
     }
   });
 
-
-
-module.exports=app;
+module.exports = router
