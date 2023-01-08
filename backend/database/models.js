@@ -1,5 +1,5 @@
-const sequelize = require('../database/sequelize');
-const {DataTypes} = require('sequelize');
+const sequelize = require('../database/sequelize')
+const {DataTypes} = require('sequelize')
 
 const User = sequelize.define('user', {
     userName: {
@@ -35,4 +35,4 @@ const Event = sequelize.define('event', {
     }
 });
 
-module.exports ={User, Event};
+module.exports ={User, Event}

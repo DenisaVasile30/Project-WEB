@@ -1,4 +1,5 @@
-const {Sequelize} = require('sequelize');
+const {Sequelize} = require('sequelize')
+
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: './database/events.db',
@@ -7,4 +8,4 @@ const sequelize = new Sequelize({
   }
 });
 
-module.exports = sequelize;
+module.exports = sequelize
